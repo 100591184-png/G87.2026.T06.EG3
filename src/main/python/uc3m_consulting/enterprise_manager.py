@@ -42,15 +42,15 @@ class EnterpriseManager:
         digits = cif[1:8]
         odd_sum = 0
         even_sum = 0
-        for index in range(len(digits)):
+        for index, digit in enumerate(digits):
             if index % 2 == 0:
-                doubled = int(digits[index]) * 2
+                doubled = int(digit) * 2
                 if doubled > 9:
                     odd_sum = odd_sum + (doubled // 10) + (doubled % 10)
                 else:
                     odd_sum = odd_sum + doubled
             else:
-                even_sum = even_sum + int(digits[index])
+                even_sum = even_sum + int(digit)
         total = odd_sum + even_sum
         remainder = total % 10
         control_num = 10 - remainder
