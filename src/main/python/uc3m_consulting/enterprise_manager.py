@@ -100,29 +100,9 @@ class EnterpriseManager:
         except json.JSONDecodeError as ex:
             raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
 
-    # pylint: disable=too-many-arguments, too-many-positional-arguments
-    def register_project(self,
-                         company_cif: str,
-                         project_acronym: str,
-                         project_description: str,
-                         department: str,
-                         date: str,
-                         budget: str):
-        """registers a new project"""
-        self.validate_cif(company_cif)
-        acronym_pattern = re.compile(r"^[a-zA-Z0-9]{5,10}")
-        acronym_match = acronym_pattern.fullmatch(project_acronym)
-        if not acronym_match:
-            raise EnterpriseManagementException("Invalid acronym")
-        description_pattern = re.compile(r"^.{10,30}$")
-        description_match = description_pattern.fullmatch(project_description)
-        if not description_match:
-            raise EnterpriseManagementException("Invalid description format")
-        department_pattern = re.compile(r"(HR|FINANCE|LEGAL|LOGISTICS)")
-        department_match = department_pattern.fullmatch(department)
-        if not department_match:
-            raise EnterpriseManagementException("Invalid department")
-        self.validate_starting_date(date)
+    @staticmethod
+    def _validate_budget(budget):
+        """validates the budget value and format"""
         try:
             budget_float = float(budget)
         except ValueError as exc:
@@ -134,6 +114,31 @@ class EnterpriseManager:
                 raise EnterpriseManagementException("Invalid budget amount")
         if budget_float < 50000 or budget_float > 1000000:
             raise EnterpriseManagementException("Invalid budget amount")
+        return budget_float
+
+    @staticmethod
+    def _validate_project_fields(project_acronym, project_description, department):
+        """validates acronym, description and department fields"""
+        if not re.compile(r"^[a-zA-Z0-9]{5,10}").fullmatch(project_acronym):
+            raise EnterpriseManagementException("Invalid acronym")
+        if not re.compile(r"^.{10,30}$").fullmatch(project_description):
+            raise EnterpriseManagementException("Invalid description format")
+        if not re.compile(r"(HR|FINANCE|LEGAL|LOGISTICS)").fullmatch(department):
+            raise EnterpriseManagementException("Invalid department")
+
+    # pylint: disable=too-many-arguments, too-many-positional-arguments
+    def register_project(self,
+                         company_cif: str,
+                         project_acronym: str,
+                         project_description: str,
+                         department: str,
+                         date: str,
+                         budget: str):
+        """registers a new project"""
+        self.validate_cif(company_cif)
+        self._validate_project_fields(project_acronym, project_description, department)
+        self.validate_starting_date(date)
+        self._validate_budget(budget)
         new_project = EnterpriseProject(company_cif=company_cif,
                                         project_acronym=project_acronym,
                                         project_description=project_description,
@@ -149,7 +154,7 @@ class EnterpriseManager:
         return new_project.project_id
 
     def _verify_document_signature(self, document):
-        """verifies the signature of a document against stored data"""
+        """verifies the cryptographic signature of a document"""
         timestamp_val = document["register_date"]
         doc_datetime = datetime.fromtimestamp(timestamp_val, tz=timezone.utc)
         with freeze_time(doc_datetime):
@@ -169,10 +174,9 @@ class EnterpriseManager:
         return doc_count
 
     def find_docs(self, date_str):
-        """generates a JSON report counting valid documents for a specific date"""
+        """returns the number of valid documents registered on a given date"""
         date_pattern = re.compile(r"^(([0-2]\d|3[0-1])\/(0\d|1[0-2])\/\d\d\d\d)$")
-        match = date_pattern.fullmatch(date_str)
-        if not match:
+        if not date_pattern.fullmatch(date_str):
             raise EnterpriseManagementException("Invalid date format")
         try:
             datetime.strptime(date_str, "%d/%m/%Y").date()
@@ -186,9 +190,8 @@ class EnterpriseManager:
         doc_count = self._count_documents_for_date(documents_list, date_str)
         if doc_count == 0:
             raise EnterpriseManagementException("No documents found")
-        now_timestamp = datetime.now(timezone.utc).timestamp()
         report_entry = {"Querydate": date_str,
-                        "ReportDate": now_timestamp,
+                        "ReportDate": datetime.now(timezone.utc).timestamp(),
                         "Numfiles": doc_count}
         try:
             with open(TEST_NUMDOCS_STORE_FILE, "r", encoding="utf-8", newline="") as file:
