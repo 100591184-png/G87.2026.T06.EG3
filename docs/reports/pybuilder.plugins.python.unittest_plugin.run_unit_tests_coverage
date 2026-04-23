@@ -1,0 +1,10 @@
+Name                                                 Stmts   Miss Branch BrPart  Cover
+--------------------------------------------------------------------------------------
+uc3m_consulting\__init__.py                              5      0      0      0   100%
+uc3m_consulting\enterprise_management_exception.py      10      1      0      0    90%
+uc3m_consulting\enterprise_manager.py                  166     19     54      5    89%
+uc3m_consulting\enterprise_manager_config.py            10      0      0      0   100%
+uc3m_consulting\enterprise_project.py                   60     13      0      0    78%
+uc3m_consulting\project_document.py                     34      7      0      0    79%
+--------------------------------------------------------------------------------------
+TOTAL                                                  285     40     54      5    87%
