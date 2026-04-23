@@ -3,6 +3,10 @@ import hashlib
 import json
 from datetime import datetime, timezone
 
+def get_current_timestamp():
+    """Returns the current UTC timestamp"""
+    return datetime.timestamp(datetime.now(timezone.utc))
+
 class EnterpriseProject:
     """Class representing a project"""
     #pylint: disable=too-many-arguments, too-many-positional-arguments
@@ -19,8 +23,7 @@ class EnterpriseProject:
         self.__department = department
         self.__starting_date = starting_date
         self.__project_budget = project_budget
-        justnow = datetime.now(timezone.utc)
-        self.__time_stamp = datetime.timestamp(justnow)
+        self.__time_stamp = get_current_timestamp()
 
     def __str__(self):
         return "Project:" + json.dumps(self.__dict__)

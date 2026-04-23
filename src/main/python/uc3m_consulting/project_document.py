@@ -1,6 +1,6 @@
 """Contains the class OrderShipping"""
-from datetime import datetime, timezone
 import hashlib
+from uc3m_consulting.enterprise_project import get_current_timestamp
 
 class ProjectDocument():
     """Class representing the information required for shipping of an order"""
@@ -10,8 +10,7 @@ class ProjectDocument():
         self.__type = "PDF"
         self.__project_id = project_id
         self.__file_name = file_name
-        justnow = datetime.now(timezone.utc)
-        self.__register_date = datetime.timestamp(justnow)
+        self.__register_date = get_current_timestamp()
 
     def to_json(self):
         """returns the object data in json format"""
